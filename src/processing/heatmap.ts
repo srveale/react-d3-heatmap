@@ -1,26 +1,21 @@
 import * as d3 from 'd3';
 
-interface Margin {
+interface IMargin {
 	top: number,
 	right: number, 
 	bottom: number, 
 	left: number
 }
 
-interface TSVRaw {
-	day: string,
-	hour: string,
-	value: string
-}
 
-// There must be a way to make TSVRaw and TSVimported the same thing
-interface TSVImported {
-	day: number,
-	hour: number,
-	value: number
-}
+// // There must be a way to make TSVRaw and TSVimported the same thing
+// interface TSVImported {
+// 	day: number,
+// 	hour: number,
+// 	value: number
+// }
 export default class HeatmapProcessor {
-	public margin: Margin
+	public margin: IMargin
 	public width: number
 	public height: number
 	public gridSize: number
@@ -30,6 +25,7 @@ export default class HeatmapProcessor {
 	public days: string[]
 	public times: string[]
 	public datasets: string[]
+	public svg: any
 
 	public constructor() {
 		this.margin = { top: 50, right: 0, bottom: 100, left: 30 };
@@ -43,8 +39,8 @@ export default class HeatmapProcessor {
 		this.datasets = ["data.tsv", "data2.tsv"];
 	}
 
-	public svg(): any {
-		return d3.select("#chart").append("svg")
+	public generateSVG(): any {
+		this.svg = d3.select("#chart").append("svg")
 		    .attr("width", this.width + this.margin.left + this.margin.right)
 		    .attr("height", this.height + this.margin.top + this.margin.bottom)
 		    .append("g")
@@ -52,7 +48,7 @@ export default class HeatmapProcessor {
 	}
 
 	public dayLabels(): void {
-		this.svg().selectAll(".dayLabel")
+		this.svg.selectAll(".dayLabel")
 		    .data(this.days)
 		    .enter().append("text")
 		      .text((d: string) => d)
@@ -64,7 +60,7 @@ export default class HeatmapProcessor {
 	}
 
 	public timeLabels(): void {
-		this.svg().selectAll(".timeLabel")
+		this.svg.selectAll(".timeLabel")
 		    .data(this.times)
 		    .enter().append("text")
 		      .text((d: string) => d)
@@ -77,26 +73,29 @@ export default class HeatmapProcessor {
 
 	public generateHeatmap(tsvFile: string){
 		d3.tsv(tsvFile)
-		.then((d: TSVRaw) => TSVImported {
-		  return {
-		    day: +d.day,
-		    hour: +d.hour,
-		    value: +d.value
-		  };
+		.then((data: any): any => {
+		  return data.map((row: any) => {
+		  	return {
+			    day: Number(row.day),
+			    hour: Number(row.hour),
+			    value: Number(row.value)
+			  }
+		  });
 		})
-		.then((error, data) => {
-			const colorScale = d3.scaleQuantile()
-			    .domain([0, this.buckets - 1, d3.max(data, (d: TSVImported) => d.value)])
-			    .range(this.colors);
+		.then((data: any): any => {
+			this.generateSVG();
+			const colorScale = d3.scaleQuantile<string>()
+			  .domain([60, this.buckets - 1, 100])
+			  .range(this.colors);
 
-			const cards = svg.selectAll(".hour")
-			    .data(data, (d) => `${d.day}:${+d.hour}`);
+			const cards = this.svg.selectAll(".hour")
+			    .data(data, (d: any) => `${+d.day}:${+d.hour}`);
 
 			cards.append("title");
 
 			cards.enter().append("rect")
-			    .attr("x", (d: TSVImported) => (d.hour - 1) * this.gridSize)
-			    .attr("y", (d: TSVImported) => (d.day - 1) * this.gridSize)
+			    .attr("x", (d: any) => (d.hour - 1) * this.gridSize)
+			    .attr("y", (d: any) => (d.day - 1) * this.gridSize)
 			    .attr("rx", 4)
 			    .attr("ry", 4)
 			    .attr("class", "hour bordered")
@@ -105,13 +104,13 @@ export default class HeatmapProcessor {
 			    .style("fill", this.colors[0]);
 
 			cards.transition().duration(1000)
-			    .style("fill", (d: TSVImported) => colorScale(d.value));
+			    .style("fill", (d: any) => colorScale(d.value));
 
-			cards.select("title").text((d: TSVImported) => d.value);
+			cards.select("title").text((d: any) => d.value);
 			
 			cards.exit().remove();
 
-			const legend = svg.selectAll(".legend")
+			const legend = this.svg.selectAll(".legend")
 			    .data([0].concat(colorScale.quantiles()), (d: string ) => d);
 
 			legend.enter().append("g")

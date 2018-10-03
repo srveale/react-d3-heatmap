@@ -7,9 +7,7 @@ import * as React from 'react';
 class Heatmap extends React.Component {
   public render() {
     return (
-      <div className="Heatmap">
-
-      </div>
+      <div className="Heatmap"/>
     );
   }
 }
