@@ -51,7 +51,7 @@ export default class HeatmapProcessor {
 			.style("text-anchor", "end")
 			.attr("transform", `translate(-6,${this.gridSize / 1.5})`)
 			.attr(
-				"class",
+				"className",
 				(d: string, i: number) =>
 					i >= 0 && i <= 4
 						? "dayLabel mono axis axis-workweek"
@@ -71,7 +71,7 @@ export default class HeatmapProcessor {
 			.style("text-anchor", "middle")
 			.attr("transform", `translate(${this.gridSize / 2}, -6)`)
 			.attr(
-				"class",
+				"className",
 				(d: string, i: number) =>
 					i >= 7 && i <= 16
 						? "timeLabel mono axis axis-worktime"
@@ -141,31 +141,25 @@ export default class HeatmapProcessor {
 
 					const legend = this.svg
 						.selectAll(".legend")
-						.data([0].concat(colorScale.quantiles()), (d: number) => d);
+						.data([0].concat(colorScale.quantiles()), (d: any) => d);
 
-					// tslint:disable-next-line:no-console
-					console.log(
-						"legend colors",
-						[0].concat(colorScale.quantiles()),
-						(d: number) => d
-					);
 					legend
 						.enter()
 						.append("g")
-						.attr("class", "legend");
+					  .attr("class", "legendElement");
 
-					legend
+					d3.selectAll(".legendElement")
 						.append("rect")
-						.attr("x", (d: string, i: number) => this.legendElementWidth * i)
+						.attr("x", (d: number, i: number) => this.legendElementWidth * i)
 						.attr("y", this.height)
 						.attr("width", this.legendElementWidth)
 						.attr("height", this.gridSize / 2)
-						.style("fill", (d: string, i: number) => this.colors[i]);
+						.style("fill", (d: number, i: number) => this.colors[i]);
 
-					legend
+					d3.selectAll(".legendElement")
 						.append("text")
-						.attr("class", "mono")
-						.text((d: number) => `≥ $Math.round(d)`)
+						.attr("className", "mono")
+						.text((d: number) => `≥ ${Math.round(d)}`)
 						.attr("x", (d: number, i: number) => this.legendElementWidth * i)
 						.attr("y", this.height + this.gridSize);
 

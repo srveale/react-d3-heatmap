@@ -14,9 +14,10 @@ class Heatmap extends React.Component {
     return (
       <div>
         <h3>Hourly breakdown</h3>
-        <div data-width="960" data-height="500" id="heatmap">
-          <div id="chart"/>
-          <div className="legend"/>
+        <div id="heatmap">
+          <div id="chart">
+            <div className="legend"/>
+          </div>
         </div>
       </div>
     );
