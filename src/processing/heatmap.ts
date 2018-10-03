@@ -8,12 +8,12 @@ interface IMargin {
 }
 
 
-// // There must be a way to make TSVRaw and TSVimported the same thing
-// interface TSVImported {
-// 	day: number,
-// 	hour: number,
-// 	value: number
-// }
+// There must be a way to make TSVRaw and ITSVimported the same thing
+interface ITSVImported {
+	day: number,
+	hour: number,
+	value: number
+}
 export default class HeatmapProcessor {
 	public margin: IMargin
 	public width: number
@@ -30,6 +30,7 @@ export default class HeatmapProcessor {
 	public constructor() {
 		this.margin = { top: 50, right: 0, bottom: 100, left: 30 };
 		this.width = 960 - this.margin.left - this.margin.right;
+		this.height = 430 - this.margin.top - this.margin.bottom;
 		this.gridSize = Math.floor(this.width / 24);
 		this.legendElementWidth = this.gridSize*2;
 		this.buckets = 9;
@@ -67,13 +68,17 @@ export default class HeatmapProcessor {
 		      .attr("x", (d: string, i: number) => i * this.gridSize)
 		      .attr("y", 0)
 		      .style("text-anchor", "middle")
-		      .attr("transform", `translate({this.gridSize / 2}, -6)`)
+		      .attr("transform", `translate(${this.gridSize / 2}, -6)`)
 		      .attr("class", (d: string, i: number) => ((i >= 7 && i <= 16) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"));
 	}
 
-	public generateHeatmap(tsvFile: string){
-		d3.tsv(tsvFile)
+	public generateHeatmap(tsvFile: string): void {
+		// tslint:disable-next-line:no-console
+		console.log('generating heatmap')
+		d3.tsv(`../data/${tsvFile}`)
 		.then((data: any): any => {
+			// tslint:disable-next-line:no-console
+			console.log('got data', data)
 		  return data.map((row: any) => {
 		  	return {
 			    day: Number(row.day),
@@ -84,35 +89,43 @@ export default class HeatmapProcessor {
 		})
 		.then((data: any): any => {
 			this.generateSVG();
+
+			// tslint:disable-next-line:no-console
+			const valueMax = Math.max.apply(Math, data.map((d: ITSVImported) => Number(d.value)))
 			const colorScale = d3.scaleQuantile<string>()
-			  .domain([60, this.buckets - 1, 100])
+			  .domain([0, this.buckets - 1, valueMax])
 			  .range(this.colors);
 
 			const cards = this.svg.selectAll(".hour")
-			    .data(data, (d: any) => `${+d.day}:${+d.hour}`);
+			    .data(data, (d: ITSVImported) => `${+d.day}:${+d.hour}`);
 
 			cards.append("title");
 
 			cards.enter().append("rect")
-			    .attr("x", (d: any) => (d.hour - 1) * this.gridSize)
-			    .attr("y", (d: any) => (d.day - 1) * this.gridSize)
+			    .attr("x", (d: ITSVImported) => (d.hour - 1) * this.gridSize)
+			    .attr("y", (d: ITSVImported) => (d.day - 1) * this.gridSize)
 			    .attr("rx", 4)
 			    .attr("ry", 4)
 			    .attr("class", "hour bordered")
 			    .attr("width", this.gridSize)
 			    .attr("height", this.gridSize)
-			    .style("fill", this.colors[0]);
+			    .style("fill", (d: ITSVImported) => colorScale(d.value));
 
 			cards.transition().duration(1000)
-			    .style("fill", (d: any) => colorScale(d.value));
+			    .style("fill", (d: ITSVImported) => colorScale(d.value));
 
-			cards.select("title").text((d: any) => d.value);
+			cards.select("title").text((d: ITSVImported) => d.value);
 			
 			cards.exit().remove();
 
-			const legend = this.svg.selectAll(".legend")
-			    .data([0].concat(colorScale.quantiles()), (d: string ) => d);
+			this.dayLabels();
+			this.timeLabels();
 
+			const legend = this.svg.selectAll(".legend")
+			    .data([0].concat(colorScale.quantiles()), (d: number ) => d);
+
+			// tslint:disable-next-line:no-console
+			console.log('legend colors', [0].concat(colorScale.quantiles()), (d: number ) => d)
 			legend.enter().append("g")
 			    .attr("class", "legend");
 
