@@ -1,7 +1,12 @@
 import * as d3 from "d3";
 
-import { IDSVParsedArray, IDSVRowAny, IMargin, ITSVImported } from '../types/chartTypes'
-import * as constants from './constants';
+import {
+	IDSVParsedArray,
+	IDSVRowAny,
+	IMargin,
+	ITSVImported
+} from "../types/chartTypes";
+import * as constants from "./constants";
 
 export default class HeatmapProcessor {
 	public margin: IMargin;
@@ -86,7 +91,7 @@ export default class HeatmapProcessor {
 			.then(
 				(data: IDSVParsedArray<IDSVRowAny>): ITSVImported[] => {
 					// tslint:disable-next-line:no-console
-					console.log('data', data)
+					console.log("data", data);
 					return data.map((row: IDSVRowAny) => {
 						return {
 							day: Number(row.day),
@@ -98,8 +103,6 @@ export default class HeatmapProcessor {
 			)
 			.then(
 				(data: ITSVImported[]): void => {
-					this.generateSVG();
-
 					const valueMax = Math.max.apply(
 						Math,
 						data.map((d: ITSVImported) => Number(d.value))
@@ -146,7 +149,7 @@ export default class HeatmapProcessor {
 					legend
 						.enter()
 						.append("g")
-					  .attr("class", "legendElement");
+						.attr("class", "legendElement");
 
 					d3.selectAll(".legendElement")
 						.append("rect")

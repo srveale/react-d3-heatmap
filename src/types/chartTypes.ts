@@ -12,9 +12,9 @@ export interface ITSVImported {
 }
 
 export interface IDSVRowAny {
-    [key: string]: any;
+	[key: string]: any;
 }
 
 export interface IDSVParsedArray<T> extends Array<T> {
-    columns: string[];
+	columns: string[];
 }

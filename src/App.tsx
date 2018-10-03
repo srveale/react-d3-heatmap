@@ -1,13 +1,30 @@
 import * as React from 'react';
 import './App.css';
 
-import Heatmap from './Heatmap'
+import DataPicker from './DataPicker';
+import Heatmap from './Heatmap';
 
-class App extends React.Component {
+interface IAppState { dataset: number };
+
+class App extends React.Component<any, IAppState> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      dataset: 1
+    };
+
+    this.switchDataset = this.switchDataset.bind(this);
+  }
+
+  public switchDataset(e: any){
+    this.setState({ dataset: e.target.value });
+  }
+
   public render() {
     return (
       <div className="App">
-        <Heatmap />
+        <Heatmap dataset={this.state.dataset}/>
+        <DataPicker dataset={this.state.dataset} switchDataset={this.switchDataset}/> 
       </div>
     );
   }
