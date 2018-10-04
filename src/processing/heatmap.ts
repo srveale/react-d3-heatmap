@@ -34,6 +34,7 @@ export default class HeatmapProcessor {
 		this.datasets = ["data.tsv", "data2.tsv"];
 	}
 
+	// Create the SVG element where the chart will be displayed
 	public generateSVG(): void {
 		this.svg = d3
 			.select("#chart")
@@ -44,6 +45,7 @@ export default class HeatmapProcessor {
 			.attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 	}
 
+	// Add the labels for the weekdays
 	public dayLabels(): void {
 		this.svg
 			.selectAll(".dayLabel")
@@ -64,6 +66,7 @@ export default class HeatmapProcessor {
 			);
 	}
 
+	// Add the labels for the hours
 	public timeLabels(): void {
 		this.svg
 			.selectAll(".timeLabel")
@@ -84,14 +87,14 @@ export default class HeatmapProcessor {
 			);
 	}
 
+	// Read in the data and populate the grid elements with values
+	// Also includes the 
 	public generateHeatmap(tsvFile: string): void {
-		// tslint:disable-next-line:no-console
-		console.log("generating heatmap");
+		// Get the data
 		d3.tsv(`../data/${tsvFile}`)
+			// Format the data
 			.then(
 				(data: IDSVParsedArray<IDSVRowAny>): ITSVImported[] => {
-					// tslint:disable-next-line:no-console
-					console.log("data", data);
 					return data.map((row: IDSVRowAny) => {
 						return {
 							day: Number(row.day),
@@ -103,6 +106,7 @@ export default class HeatmapProcessor {
 			)
 			.then(
 				(data: ITSVImported[]): void => {
+					// Create the color scale to be mapped by the data
 					const valueMax = Math.max.apply(
 						Math,
 						data.map((d: ITSVImported) => Number(d.value))
@@ -112,6 +116,8 @@ export default class HeatmapProcessor {
 						.domain([0, this.buckets - 1, valueMax])
 						.range(this.colors);
 
+					// Cards are the grid elements
+					// Generate and style each card
 					const cards = this.svg
 						.selectAll(".hour")
 						.data(data, (d: ITSVImported) => `${+d.day}:${+d.hour}`);
@@ -139,9 +145,14 @@ export default class HeatmapProcessor {
 
 					cards.exit().remove();
 
+					// Apply the labels for day of week and hour of day
 					this.dayLabels();
 					this.timeLabels();
 
+					// Clear the old legend so the new one doesn't concatenate
+					d3.selectAll(".legendElement").remove();
+
+					// Create the legend based on the color scaling
 					const legend = this.svg
 						.selectAll(".legend")
 						.data([0].concat(colorScale.quantiles()), (d: any) => d);
